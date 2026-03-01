@@ -12,9 +12,9 @@ from torchvision.models.resnet import BasicBlock, Bottleneck, ResNet
 from torch.hub import load_state_dict_from_url
 from torch.utils.data import DataLoader
 
-from ..base_classifier import BaseClassifierInference 
+from ..base_classifier import BaseClassifierInference
 from ....data import transforms as pw_trans
-from ....data import datasets as pw_data 
+from ....data import datasets as pw_data
 
 # Making the PlainResNetInference class available for import from this module
 __all__ = ["PlainResNetInference"]
@@ -105,6 +105,7 @@ class PlainResNetInference(BaseClassifierInference):
     Inference module for the PlainResNet Classifier.
     """
     IMAGE_SIZE = None
+
     def __init__(self, num_cls=36, num_layers=50, weights=None, device="cpu", url=None, transform=None):
         super(PlainResNetInference, self).__init__()
         self.device = device
@@ -126,12 +127,12 @@ class PlainResNetInference(BaseClassifierInference):
 
     def results_generation(self, logits: torch.Tensor, img_ids: list[str], id_strip: str = None) -> list[dict]:
         """
-        Process logits to produce final results. 
+        Process logits to produce final results.
 
         Args:
             logits (torch.Tensor): Logits from the network.
             img_ids (list[str]): List of image paths.
-            id_strip (str): Stripping string for better image ID saving.       
+            id_strip (str): Stripping string for better image ID saving.
 
         Returns:
             list[dict]: List of dictionaries containing the results.
@@ -172,12 +173,12 @@ class PlainResNetInference(BaseClassifierInference):
         else:
             raise Exception("Need data for inference.")
 
-        dataloader = DataLoader(dataset, batch_size=32, shuffle=False, 
+        dataloader = DataLoader(dataset, batch_size=32, shuffle=False,
                                 pin_memory=True, num_workers=4, drop_last=False)
         total_logits = []
         total_paths = []
 
-        with tqdm(total=len(dataloader)) as pbar: 
+        with tqdm(total=len(dataloader)) as pbar:
             for batch in dataloader:
                 imgs, paths = batch
                 imgs = imgs.to(self.device)

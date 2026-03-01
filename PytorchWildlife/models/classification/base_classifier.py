@@ -7,6 +7,7 @@ import torch.nn as nn
 # Making the PlainResNetInference class available for import from this module
 __all__ = ["BaseClassifierInference"]
 
+
 class BaseClassifierInference(nn.Module):
     """
     Inference module for the PlainResNet Classifier.

@@ -19,7 +19,7 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scale
     """
     Resize and pad an image to a desired shape while keeping the aspect ratio unchanged.
 
-    This function is commonly used in object detection tasks to prepare images for models like YOLOv5. 
+    This function is commonly used in object detection tasks to prepare images for models like YOLOv5.
     It resizes the image to fit into the new shape with the correct aspect ratio and then pads the rest.
 
     Args:
@@ -64,7 +64,7 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scale
 
     dw /= 2
     dh /= 2
-   
+
     # Resize image
     if shape[::-1] != new_unpad:
         resize_transform = T.Resize(new_unpad[::-1], interpolation=T.InterpolationMode.BILINEAR,
@@ -73,9 +73,10 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scale
 
     # Pad image
     padding = (int(round(dw - 0.1)), int(round(dw + 0.1)), int(round(dh + 0.1)), int(round(dh - 0.1)))
-    im = F.pad(im*255.0, padding, value=114)/255.0
+    im = F.pad(im * 255.0, padding, value=114) / 255.0
 
     return im
+
 
 class MegaDetector_v5_Transform:
     """
@@ -113,10 +114,11 @@ class MegaDetector_v5_Transform:
             np_img = torch.from_numpy(np_img).float()
             np_img /= 255.0
 
-        # Resize and pad the image using a customized letterbox function. 
+        # Resize and pad the image using a customized letterbox function.
         img = letterbox(np_img, new_shape=self.target_size, stride=self.stride, auto=False)
 
         return img
+
 
 class Classification_Inference_Transform:
     """

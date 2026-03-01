@@ -14,10 +14,10 @@ class AI4GOpossum(PlainResNetInference):
     Opossum Classifier that inherits from PlainResNetInference.
     This classifier is specialized for distinguishing between Opossums and Non-opossums.
     """
-    
+
     # Image size for the Opossum classifier
     IMAGE_SIZE = 224
-    
+
     # Class names for prediction
     CLASS_NAMES = {
         0: "Non-opossum",
@@ -50,7 +50,7 @@ class AI4GOpossum(PlainResNetInference):
         Args:
             logits (torch.Tensor): Output tensor from the model.
             img_ids (list): List of image identifier.
-            id_strip (str): stiping string for better image id saving.       
+            id_strip (str): stiping string for better image id saving.
 
         Returns:
             dict: Dictionary containing image ID, prediction, and confidence score.
@@ -66,5 +66,5 @@ class AI4GOpossum(PlainResNetInference):
             r["class_id"] = pred
             r["confidence"] = prob.item() if pred == 1 else (1 - prob.item())
             results.append(r)
-        
+
         return results

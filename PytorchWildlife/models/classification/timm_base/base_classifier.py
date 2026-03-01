@@ -17,14 +17,14 @@ import timm
 
 from ..base_classifier import BaseClassifierInference
 from ....data import transforms as pw_trans
-from ....data import datasets as pw_data 
+from ....data import datasets as pw_data
 
 
 class TIMM_BaseClassifierInference(BaseClassifierInference):
     """
     Base detector class for dinov2 classifier. This class provides utility methods
-    for loading the model, performing single and batch image classifications, and 
-    formatting results. Make sure the appropriate file for the model weights has been 
+    for loading the model, performing single and batch image classifications, and
+    formatting results. Make sure the appropriate file for the model weights has been
     downloaded to the "models" folder before running DFNE.
     """
 
@@ -36,17 +36,17 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
                  weights_key='model_state_dict', weights_prefix=''):
         """
         Initialize the model.
-        
+
         Args:
-            weights (str, optional): 
+            weights (str, optional):
                 Path to the model weights. Defaults to None.
-            device (str, optional): 
+            device (str, optional):
                 Device for model inference. Defaults to "cpu".
-            url (str, optional): 
+            url (str, optional):
                 URL to fetch the model weights. Defaults to None.
-            weights_key (str, optional): 
+            weights_key (str, optional):
                 Key to fetch the model weights. Defaults to None.
-            weights_prefix (str, optional): 
+            weights_prefix (str, optional):
                 prefix of model weight keys. Defaults to None.
         """
         super(TIMM_BaseClassifierInference, self).__init__()
@@ -62,19 +62,19 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
     def _load_model(self, weights=None, url=None, weights_key='model_state_dict', weights_prefix=''):
         """
         Load TIMM based model weights
-        
+
         Args:
-        weights (str, optional): 
+        weights (str, optional):
             Path to the model weights. (defaults to None)
-        url (str, optional): 
+        url (str, optional):
             url to the model weights. (defaults to None)
         """
 
         self.predictor = timm.create_model(
-            self.BACKBONE, 
-            pretrained = False, 
-            num_classes = len(self.CLASS_NAMES),
-            dynamic_img_size = True
+            self.BACKBONE,
+            pretrained=False,
+            num_classes=len(self.CLASS_NAMES),
+            dynamic_img_size=True
         )
 
         if url:
@@ -87,13 +87,13 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
             raise Exception("Need weights for inference.")
 
         checkpoint = torch.load(
-            f = weights,
-            map_location = self.device,
-            weights_only = False
+            f=weights,
+            map_location=self.device,
+            weights_only=False
         )[weights_key]
 
         checkpoint = OrderedDict({k.replace("{}".format(weights_prefix), ""): checkpoint[k]
-                                    for k in checkpoint})
+                                for k in checkpoint})
 
         self.predictor.load_state_dict(checkpoint)
         print("Model loaded from {}".format(os.path.join(torch.hub.get_dir(), "checkpoints", self.MODEL_NAME)))
@@ -113,7 +113,7 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
         Returns:
             list[dict]: List of dictionaries containing image ID, prediction, and confidence score.
         """
-        
+
         probs = torch.softmax(logits, dim=1)
         preds = probs.argmax(dim=1)
         confs = probs.max(dim=1)[0]
@@ -128,17 +128,17 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
             r["confidence"] = conf.item()
             r["all_confidences"] = result
             results.append(r)
-        
+
         return results
 
     def single_image_classification(self, img, img_id=None, id_strip=None):
         """
         Perform classification on a single image.
-        
+
         Args:
-            img (str or ndarray): 
+            img (str or ndarray):
                 Image path or ndarray of images.
-            img_id (str, optional): 
+            img_id (str, optional):
                 Image path or identifier.
             id_strip (str, optional):
                 Whether to strip stings in id. Defaults to None.
@@ -146,7 +146,7 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
         Returns:
             (dict): Classification results.
         """
-        if type(img) == str:
+        if isinstance(img) == str:
             img = Image.open(img).convert("RGB")
         else:
             img = Image.fromarray(img)
@@ -159,10 +159,10 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
                                    batch_size=32, num_workers=0, **kwargs):
         """
         Perform classification on a batch of images.
-        
+
         Args:
-            data_path (str): 
-                Path containing all images for inference. Defaults to None. 
+            data_path (str):
+                Path containing all images for inference. Defaults to None.
             det_results (dict):
                 Dirct outputs from detectors. Defaults to None.
             id_strip (str, optional):
@@ -193,11 +193,11 @@ class TIMM_BaseClassifierInference(BaseClassifierInference):
 
         dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers,
                                 shuffle=False, pin_memory=True, drop_last=False, **kwargs)
-        
+
         total_logits = []
         total_paths = []
 
-        with tqdm(total=len(dataloader)) as pbar: 
+        with tqdm(total=len(dataloader)) as pbar:
             for batch in dataloader:
                 imgs, paths = batch
                 imgs = imgs.to(self.device)

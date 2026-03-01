@@ -14,10 +14,10 @@ class AI4GAmazonRainforest(PlainResNetInference):
     Amazon Ranforest Animal Classifier that inherits from PlainResNetInference.
     This classifier is specialized for recognizing 36 different animals in the Amazon Rainforest.
     """
-    
+
     # Image size for the Opossum classifier
     IMAGE_SIZE = 224
-    
+
     # Class names for prediction
     CLASS_NAMES = {
         0: 'Dasyprocta',
@@ -88,12 +88,12 @@ class AI4GAmazonRainforest(PlainResNetInference):
         Args:
             logits (torch.Tensor): Output tensor from the model.
             img_ids (str): Image identifier.
-            id_strip (str): stiping string for better image id saving.       
+            id_strip (str): stiping string for better image id saving.
 
         Returns:
             dict: Dictionary containing image ID, prediction, and confidence score.
         """
-        
+
         probs = torch.softmax(logits, dim=1)
         preds = probs.argmax(dim=1)
         confs = probs.max(dim=1)[0]
@@ -108,5 +108,5 @@ class AI4GAmazonRainforest(PlainResNetInference):
             r["confidence"] = conf.item()
             r["all_confidences"] = result
             results.append(r)
-        
+
         return results
