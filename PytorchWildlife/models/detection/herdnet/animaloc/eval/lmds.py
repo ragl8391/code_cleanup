@@ -24,24 +24,24 @@ __all__ = ['LMDS', 'HerdNetLMDS']
 
 
 class LMDS:
-    ''' Local Maxima Detection Strategy 
+    ''' Local Maxima Detection Strategy
 
     Adapted and enhanced from https://github.com/dk-liang/FIDTM (author: dklinag)
     available under the MIT license '''
 
     def __init__(
-        self, 
-        kernel_size: tuple = (3,3),
-        adapt_ts: float = 100.0/255.0, 
+        self,
+        kernel_size: tuple = (3, 3),
+        adapt_ts: float = 100.0 / 255.0,
         neg_ts: float = 0.1
-        ) -> None:
+    ) -> None:
         '''
         Args:
             kernel_size (tuple, optional): size of the kernel used to select local
                 maxima. Defaults to (3,3) (as in the paper).
             adapt_ts (float, optional): adaptive threshold to select final points
                 from candidates. Defaults to 100.0/255.0 (as in the paper).
-            neg_ts (float, optional): negative sample threshold used to define if 
+            neg_ts (float, optional): negative sample threshold used to define if
                 an image is a negative sample or not. Defaults to 0.1 (as in the paper).
         '''
 
@@ -54,11 +54,11 @@ class LMDS:
         self.adapt_ts = adapt_ts
         self.neg_ts = neg_ts
 
-    def __call__(self, est_map: torch.Tensor) -> Tuple[list,list,list,list]:
+    def __call__(self, est_map: torch.Tensor) -> Tuple[list, list, list, list]:
         '''
         Args:
             est_map (torch.Tensor): the estimated FIDT map
-        
+
         Returns:
             Tuple[list,list,list,list]
                 counts, labels, scores and locations per batch
@@ -72,7 +72,7 @@ class LMDS:
             for c in range(classes):
                 count, loc, score = self._lmds(est_map[b][c])
                 counts.append(count)
-                labels = [*labels, *[c+1]*count]
+                labels = [*labels, * [c + 1] * count]
                 scores = [*scores, *score]
                 locs = [*locs, *loc]
 
@@ -82,7 +82,7 @@ class LMDS:
             b_locs.append(locs)
 
         return b_counts, b_locs, b_labels, b_scores
-    
+
     def _local_max(self, est_map: torch.Tensor) -> torch.Tensor:
         ''' Shape: est_map = [B,C,H,W] '''
 
@@ -92,24 +92,24 @@ class LMDS:
         est_map = keep * est_map
 
         return est_map
-    
+
     def _get_locs_and_scores(
-        self, 
-        locs_map: torch.Tensor, 
+        self,
+        locs_map: torch.Tensor,
         scores_map: torch.Tensor
-        ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         ''' Shapes: locs_map = [H,W] and scores_map = [H,W] '''
 
         locs_map = locs_map.data.cpu().numpy()
         scores_map = scores_map.data.cpu().numpy()
         locs = []
         scores = []
-        for i, j in numpy.argwhere(locs_map ==  1):
-            locs.append((i,j))
+        for i, j in numpy.argwhere(locs_map == 1):
+            locs.append((i, j))
             scores.append(scores_map[i][j])
-        
+
         return torch.Tensor(locs), torch.Tensor(scores)
-    
+
     def _lmds(self, est_map: torch.Tensor) -> Tuple[int, list, list]:
         ''' Shape: est_map = [H,W] '''
 
@@ -132,21 +132,22 @@ class LMDS:
 
         # locations and scores
         locs, scores = self._get_locs_and_scores(
-            est_map.squeeze(0).squeeze(0), 
+            est_map.squeeze(0).squeeze(0),
             scores_map.squeeze(0).squeeze(0)
-            )
+        )
 
         return count, locs.tolist(), scores.tolist()
+
 
 class HerdNetLMDS(LMDS):
 
     def __init__(
-        self, 
-        up: bool = True, 
-        kernel_size: tuple = (3,3), 
-        adapt_ts: float = 0.3, 
+        self,
+        up: bool = True,
+        kernel_size: tuple = (3, 3),
+        adapt_ts: float = 0.3,
         neg_ts: float = 0.1
-        ) -> None:
+    ) -> None:
         '''
         Args:
             up (bool, optional): set to False to disable class maps upsampling.
@@ -155,14 +156,14 @@ class HerdNetLMDS(LMDS):
                 maxima. Defaults to (3,3) (as in the paper).
             adapt_ts (float, optional): adaptive threshold to select final points
                 from candidates. Defaults to 0.3.
-            neg_ts (float, optional): negative sample threshold used to define if 
+            neg_ts (float, optional): negative sample threshold used to define if
                 an image is a negative sample or not. Defaults to 0.1 (as in the paper).
         '''
 
         super().__init__(kernel_size=kernel_size, adapt_ts=adapt_ts, neg_ts=neg_ts)
 
         self.up = up
-    
+
     def __call__(self, outputs: List[torch.Tensor]) -> Tuple[list, list, list, list, list]:
         """
         Args:
@@ -176,14 +177,14 @@ class HerdNetLMDS(LMDS):
         """
 
         heatmap, clsmap = outputs
-        
+
         # upsample class map
         if self.up:
             scale_factor = 16
             clsmap = F.interpolate(clsmap, scale_factor=scale_factor, mode='nearest')
 
         # softmax
-        cls_scores = torch.softmax(clsmap, dim=1)[:,1:,:,:]
+        cls_scores = torch.softmax(clsmap, dim=1)[:, 1:, :, :]
 
         # cat to heatmap
         outmaps = torch.cat([heatmap, cls_scores], dim=1)
@@ -196,11 +197,11 @@ class HerdNetLMDS(LMDS):
 
             _, locs, _ = self._lmds(heatmap[b][0])
 
-            cls_idx = torch.argmax(clsmap[b,1:,:,:], dim=0)
+            cls_idx = torch.argmax(clsmap[b, 1:, :, :], dim=0)
             classes = torch.add(cls_idx, 1)
 
-            h_idx = torch.Tensor([l[0] for l in locs]).long()
-            w_idx = torch.Tensor([l[1] for l in locs]).long()
+            h_idx = torch.Tensor([item[0] for item in locs]).long()
+            w_idx = torch.Tensor([item[1] for item in locs]).long()
             labels = classes[h_idx, w_idx].long().tolist()
 
             chan_idx = cls_idx[h_idx, w_idx].long().tolist()
