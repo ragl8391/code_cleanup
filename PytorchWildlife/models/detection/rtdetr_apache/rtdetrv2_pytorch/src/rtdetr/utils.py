@@ -4,12 +4,12 @@
 import math
 from typing import List
 
-import torch 
+import torch
 import torch.nn as nn
-import torch.nn.functional as F 
+import torch.nn.functional as F
 
 
-def inverse_sigmoid(x: torch.Tensor, eps: float=1e-5) -> torch.Tensor:
+def inverse_sigmoid(x: torch.Tensor, eps: float = 1e-5) -> torch.Tensor:
     x = x.clip(min=0., max=1.)
     return torch.log(x.clip(min=eps) / (1 - x).clip(min=eps))
 
@@ -20,13 +20,12 @@ def bias_init_with_prob(prior_prob=0.01):
     return bias_init
 
 
-def deformable_attention_core_func_v2(\
-    value: torch.Tensor, 
-    value_spatial_shapes,
-    sampling_locations: torch.Tensor, 
-    attention_weights: torch.Tensor, 
-    num_points_list: List[int], 
-    method='default'):
+def deformable_attention_core_func_v2(value: torch.Tensor,
+                                      value_spatial_shapes,
+                                      sampling_locations: torch.Tensor,
+                                      attention_weights: torch.Tensor,
+                                      num_points_list: List[int],
+                                      method='default'):
     """
     Args:
         value (Tensor): [bs, value_length, n_head, c]
@@ -40,7 +39,7 @@ def deformable_attention_core_func_v2(\
     """
     bs, _, n_head, c = value.shape
     _, Len_q, _, _, _ = sampling_locations.shape
-        
+
     split_shape = [h * w for h, w in value_spatial_shapes]
     value_list = value.permute(0, 2, 3, 1).flatten(0, 1).split(split_shape, dim=-1)
 
@@ -61,25 +60,25 @@ def deformable_attention_core_func_v2(\
 
         if method == 'default':
             sampling_value_l = F.grid_sample(
-                value_l, 
-                sampling_grid_l, 
-                mode='bilinear', 
-                padding_mode='zeros', 
+                value_l,
+                sampling_grid_l,
+                mode='bilinear',
+                padding_mode='zeros',
                 align_corners=False)
-        
+
         elif method == 'discrete':
             # n * m, seq, n, 2
             sampling_coord = (sampling_grid_l * torch.tensor([[w, h]], device=value.device) + 0.5).to(torch.int64)
 
             # FIX ME? for rectangle input
-            sampling_coord = sampling_coord.clamp(0, h - 1) 
-            sampling_coord = sampling_coord.reshape(bs * n_head, Len_q * num_points_list[level], 2) 
+            sampling_coord = sampling_coord.clamp(0, h - 1)
+            sampling_coord = sampling_coord.reshape(bs * n_head, Len_q * num_points_list[level], 2)
 
             s_idx = torch.arange(sampling_coord.shape[0], device=value.device).unsqueeze(-1).repeat(1, sampling_coord.shape[1])
-            sampling_value_l: torch.Tensor = value_l[s_idx, :, sampling_coord[..., 1], sampling_coord[..., 0]] # n l c
+            sampling_value_l: torch.Tensor = value_l[s_idx, :, sampling_coord[..., 1], sampling_coord[..., 0]]  # n l c
 
             sampling_value_l = sampling_value_l.permute(0, 2, 1).reshape(bs * n_head, c, Len_q, num_points_list[level])
-        
+
         sampling_value_list.append(sampling_value_l)
 
     attn_weights = attention_weights.permute(0, 2, 1, 3).reshape(bs * n_head, 1, Len_q, sum(num_points_list))
@@ -89,17 +88,17 @@ def deformable_attention_core_func_v2(\
     return output.permute(0, 2, 1)
 
 
-def get_activation(act: str, inpace: bool=True):
+def get_activation(act: str, inpace: bool = True):
     """get activation
     """
     if act is None:
         return nn.Identity()
 
     elif isinstance(act, nn.Module):
-        return act 
+        return act
 
     act = act.lower()
-    
+
     if act == 'silu' or act == 'swish':
         m = nn.SiLU()
 
@@ -111,7 +110,7 @@ def get_activation(act: str, inpace: bool=True):
 
     elif act == 'silu':
         m = nn.SiLU()
-    
+
     elif act == 'gelu':
         m = nn.GELU()
 
@@ -119,9 +118,9 @@ def get_activation(act: str, inpace: bool=True):
         m = nn.Hardsigmoid()
 
     else:
-        raise RuntimeError('')  
+        raise RuntimeError('')
 
     if hasattr(m, 'inplace'):
         m.inplace = inpace
-    
-    return m 
+
+    return m
