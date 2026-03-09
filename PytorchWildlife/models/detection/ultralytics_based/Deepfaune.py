@@ -12,15 +12,16 @@ __all__ = [
     'DeepfauneDetector',
 ]
 
+
 class DeepfauneDetector(YOLOV8Base):
     """
-    MegaDetectorV6 is a specialized class derived from the YOLOV8Base class 
+    MegaDetectorV6 is a specialized class derived from the YOLOV8Base class
     that is specifically designed for detecting animals, persons, and vehicles.
-    
+
     Attributes:
         CLASS_NAMES (dict): Mapping of class IDs to their respective names.
     """
-    
+
     CLASS_NAMES = {
         0: "animal",
         1: "person",
@@ -37,7 +38,7 @@ class DeepfauneDetector(YOLOV8Base):
         """
         self.IMAGE_SIZE = 960
 
-        url = "https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.3/deepfaune-yolov8s_960.pt" 
+        url = "https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.3/deepfaune-yolov8s_960.pt"
         self.MODEL_NAME = "deepfaune-yolov8s_960.pt"
 
         super(DeepfauneDetector, self).__init__(weights=weights, device=device, url=url)

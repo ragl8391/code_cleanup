@@ -5,15 +5,16 @@ __all__ = [
     'MegaDetectorV6_Distributed'
 ]
 
+
 class MegaDetectorV6_Distributed(YOLOV8_Distributed):
     """
-    MegaDetectorV6 is a specialized class derived from the YOLOV8Base class 
+    MegaDetectorV6 is a specialized class derived from the YOLOV8Base class
     that is specifically designed for detecting animals, persons, and vehicles.
-    
+
     Attributes:
         CLASS_NAMES (dict): Mapping of class IDs to their respective names.
     """
-    
+
     CLASS_NAMES = {
         0: "animal",
         1: "person",
@@ -23,7 +24,7 @@ class MegaDetectorV6_Distributed(YOLOV8_Distributed):
     def __init__(self, weights=None, device="cpu", pretrained=True, version='yolov9c'):
         """
         Initializes the MegaDetectorV5 model with the option to load pretrained weights.
-        
+
         Args:
             weights (str, optional): Path to the weights file.
             device (str, optional): Device to load the model on (e.g., "cpu" or "cuda"). Default is "cpu".
@@ -32,8 +33,8 @@ class MegaDetectorV6_Distributed(YOLOV8_Distributed):
         """
         self.IMAGE_SIZE = 1280
 
-        if version == 'MDV6-yolov9-c':            
-            url = "https://zenodo.org/records/15398270/files/MDV6-yolov9-c.pt?download=1" 
+        if version == 'MDV6-yolov9-c':
+            url = "https://zenodo.org/records/15398270/files/MDV6-yolov9-c.pt?download=1"
             self.MODEL_NAME = "MDV6b-yolov9-c.pt"
         elif version == 'MDV6-yolov9-e':
             url = "https://zenodo.org/records/15398270/files/MDV6-yolov9-e-1280.pt?download=1"
