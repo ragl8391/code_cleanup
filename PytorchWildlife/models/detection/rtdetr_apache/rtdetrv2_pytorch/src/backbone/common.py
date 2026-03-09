@@ -1,7 +1,7 @@
 """Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 """
 
-import torch 
+import torch
 import torch.nn as nn
 
 
@@ -20,7 +20,7 @@ class FrozenBatchNorm2d(nn.Module):
         self.register_buffer("running_mean", torch.zeros(n))
         self.register_buffer("running_var", torch.ones(n))
         self.eps = eps
-        self.num_features = n 
+        self.num_features = n
 
     def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
                               missing_keys, unexpected_keys, error_msgs):
@@ -48,17 +48,18 @@ class FrozenBatchNorm2d(nn.Module):
             "{num_features}, eps={eps}".format(**self.__dict__)
         )
 
-def get_activation(act: str, inplace: bool=True):
+
+def get_activation(act: str, inplace: bool = True):
     """get activation
     """
     if act is None:
         return nn.Identity()
 
     elif isinstance(act, nn.Module):
-        return act 
+        return act
 
     act = act.lower()
-    
+
     if act == 'silu' or act == 'swish':
         m = nn.SiLU()
 
@@ -70,7 +71,7 @@ def get_activation(act: str, inplace: bool=True):
 
     elif act == 'silu':
         m = nn.SiLU()
-    
+
     elif act == 'gelu':
         m = nn.GELU()
 
@@ -78,9 +79,9 @@ def get_activation(act: str, inplace: bool=True):
         m = nn.Hardsigmoid()
 
     else:
-        raise RuntimeError('')  
+        raise RuntimeError('')
 
     if hasattr(m, 'inplace'):
         m.inplace = inplace
-    
-    return m 
+
+    return m

@@ -1,8 +1,8 @@
 """Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 """
 import torch
-import torch.nn as nn 
-import torch.nn.functional as F 
+import torch.nn as nn
+import torch.nn.functional as F
 
 from collections import OrderedDict
 
@@ -34,14 +34,14 @@ class ConvNormLayer(nn.Module):
     def __init__(self, ch_in, ch_out, kernel_size, stride, padding=None, bias=False, act=None):
         super().__init__()
         self.conv = nn.Conv2d(
-            ch_in, 
-            ch_out, 
-            kernel_size, 
-            stride, 
-            padding=(kernel_size-1)//2 if padding is None else padding, 
+            ch_in,
+            ch_out,
+            kernel_size,
+            stride,
+            padding=(kernel_size - 1) // 2 if padding is None else padding,
             bias=bias)
         self.norm = nn.BatchNorm2d(ch_out)
-        self.act = get_activation(act) 
+        self.act = get_activation(act)
 
     def forward(self, x):
         return self.act(self.norm(self.conv(x)))
@@ -66,8 +66,7 @@ class BasicBlock(nn.Module):
 
         self.branch2a = ConvNormLayer(ch_in, ch_out, 3, stride, act=act)
         self.branch2b = ConvNormLayer(ch_out, ch_out, 3, 1, act=None)
-        self.act = nn.Identity() if act is None else get_activation(act) 
-
+        self.act = nn.Identity() if act is None else get_activation(act)
 
     def forward(self, x):
         out = self.branch2a(x)
@@ -76,7 +75,7 @@ class BasicBlock(nn.Module):
             short = x
         else:
             short = self.short(x)
-        
+
         out = out + short
         out = self.act(out)
 
@@ -94,7 +93,7 @@ class BottleNeck(nn.Module):
         else:
             stride1, stride2 = 1, stride
 
-        width = ch_out 
+        width = ch_out
 
         self.branch2a = ConvNormLayer(ch_in, width, 1, stride1, act=act)
         self.branch2b = ConvNormLayer(width, width, 3, stride2, act=act)
@@ -110,7 +109,7 @@ class BottleNeck(nn.Module):
             else:
                 self.short = ConvNormLayer(ch_in, ch_out * self.expansion, 1, stride)
 
-        self.act = nn.Identity() if act is None else get_activation(act) 
+        self.act = nn.Identity() if act is None else get_activation(act)
 
     def forward(self, x):
         out = self.branch2a(x)
@@ -136,9 +135,9 @@ class Blocks(nn.Module):
         for i in range(count):
             self.blocks.append(
                 block(
-                    ch_in, 
+                    ch_in,
                     ch_out,
-                    stride=2 if i == 0 and stage_num != 2 else 1, 
+                    stride=2 if i == 0 and stage_num != 2 else 1,
                     shortcut=False if i == 0 else True,
                     variant=variant,
                     act=act)
@@ -156,16 +155,14 @@ class Blocks(nn.Module):
 
 @register()
 class PResNet(nn.Module):
-    def __init__(
-        self, 
-        depth, 
-        variant='d', 
-        num_stages=4, 
-        return_idx=[0, 1, 2, 3], 
-        act='relu',
-        freeze_at=-1, 
-        freeze_norm=True, 
-        pretrained=False):
+    def __init__(self,
+                 depth,
+                 variant='d',
+                 num_stages=4,
+                 return_idx=[0, 1, 2, 3],
+                 act='relu',
+                 freeze_at=-1,
+                 freeze_norm=True, pretrained=False):
         super().__init__()
 
         block_nums = ResNet_cfg[depth]
@@ -240,5 +237,3 @@ class PResNet(nn.Module):
             if idx in self.return_idx:
                 outs.append(x)
         return outs
-
-

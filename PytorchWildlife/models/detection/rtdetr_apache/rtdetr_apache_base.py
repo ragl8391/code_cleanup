@@ -8,7 +8,7 @@ import os
 import supervision as sv
 import wget
 import torch
-import torch.nn as nn 
+import torch.nn as nn
 import torchvision.transforms as T
 
 from ..base_detector import BaseDetector
@@ -17,9 +17,10 @@ from PIL import Image
 
 import sys
 from pathlib import Path
+from rtdetrv2_pytorch.src.core import YAMLConfig
 project_root = Path(__file__).resolve().parent
 sys.path.append(str(project_root))
-from rtdetrv2_pytorch.src.core import YAMLConfig
+
 
 class RTDETRApacheBase(BaseDetector):
     """
@@ -29,13 +30,13 @@ class RTDETRApacheBase(BaseDetector):
     def __init__(self, weights=None, device="cpu", url=None):
         """
         Initialize the RT-DETR apache detector.
-        
+
         Args:
-            weights (str, optional): 
+            weights (str, optional):
                 Path to the model weights. Defaults to None.
-            device (str, optional): 
+            device (str, optional):
                 Device for model inference. Defaults to "cpu".
-            url (str, optional): 
+            url (str, optional):
                 URL to fetch the model weights. Defaults to None.
         """
         self.transform = T.Compose([
@@ -51,13 +52,13 @@ class RTDETRApacheBase(BaseDetector):
     def _load_model(self, weights=None, device="cpu", url=None):
         """
         Load the RT-DETR apache model weights.
-        
+
         Args:
-            weights (str, optional): 
+            weights (str, optional):
                 Path to the model weights. Defaults to None.
-            device (str, optional): 
+            device (str, optional):
                 Device for model inference. Defaults to "cpu".
-            url (str, optional): 
+            url (str, optional):
                 URL to fetch the model weights. Defaults to None.
         Raises:
             Exception: If weights are not provided.
@@ -79,10 +80,10 @@ class RTDETRApacheBase(BaseDetector):
             config = os.path.join(project_root, "rtdetrv2_pytorch", "configs", "rtdetrv2", "rtdetrv2_r101vd_6x_megadetector.yml")
         else:
             raise ValueError('Select a valid model version: MDV6-apa-rtdetr-c or MDV6-apa-rtdetr-e')
-        
+
         cfg = YAMLConfig(config, resume=resume)
-        
-        checkpoint = torch.load(resume, map_location='cpu') 
+
+        checkpoint = torch.load(resume, map_location='cpu')
         if 'ema' in checkpoint:
             state = checkpoint['ema']['module']
         else:
@@ -95,24 +96,24 @@ class RTDETRApacheBase(BaseDetector):
                 super().__init__()
                 self.model = cfg.model.deploy()
                 self.postprocessor = cfg.postprocessor.deploy()
-                
+
             def forward(self, images, orig_target_sizes):
                 outputs = self.model(images)
                 outputs = self.postprocessor(outputs, orig_target_sizes)
                 return outputs
-        
+
         self.model = Model().to(self.device)
 
     def results_generation(self, preds, img_id, id_strip=None):
         """
         Generate results for detection based on model predictions.
-        
+
         Args:
-            preds (List[torch.Tensor]): 
+            preds (List[torch.Tensor]):
                 Model predictions.
-            img_id (str): 
+            img_id (str):
                 Image identifier.
-            id_strip (str, optional): 
+            id_strip (str, optional):
                 Strip specific characters from img_id. Defaults to None.
 
         Returns:
@@ -130,31 +131,30 @@ class RTDETRApacheBase(BaseDetector):
         )
 
         results["labels"] = [
-            f"{self.CLASS_NAMES[class_id]} {confidence:0.2f}"  
-            for _, _, confidence, class_id, _, _ in results["detections"] 
+            f"{self.CLASS_NAMES[class_id]} {confidence:0.2f}"
+            for _, _, confidence, class_id, _, _ in results["detections"]
         ]
-        
+
         return results
-        
 
     def single_image_detection(self, img, img_path=None, det_conf_thres=0.2, id_strip=None):
         """
         Perform detection on a single image.
-        
+
         Args:
-            img (str or ndarray): 
+            img (str or ndarray):
                 Image path or ndarray of images.
-            img_path (str, optional): 
+            img_path (str, optional):
                 Image path or identifier.
-            det_conf_thres (float, optional): 
+            det_conf_thres (float, optional):
                 Confidence threshold for predictions. Defaults to 0.2.
-            id_strip (str, optional): 
+            id_strip (str, optional):
                 Characters to strip from img_id. Defaults to None.
 
         Returns:
             dict: Detection results.
         """
-        if type(img) == str:
+        if isinstance(img) == str:
             if img_path is None:
                 img_path = img
             im_pil = Image.open(img_path).convert('RGB')
@@ -170,21 +170,21 @@ class RTDETRApacheBase(BaseDetector):
         lab = labels[0][scr > det_conf_thres]
         box = boxes[0][scr > det_conf_thres]
         scrs = scores[0][scr > det_conf_thres]
-        
+
         return self.results_generation([lab, box, scrs], img_path, id_strip)
 
     def batch_image_detection(self, data_path, batch_size=16, det_conf_thres=0.2, id_strip=None):
         """
         Perform detection on a batch of images.
-        
+
         Args:
-            data_path (str): 
+            data_path (str):
                 Path containing all images for inference.
             batch_size (int, optional):
                 Batch size for inference. Defaults to 16.
-            det_conf_thres (float, optional): 
+            det_conf_thres (float, optional):
                 Confidence threshold for predictions. Defaults to 0.2.
-            id_strip (str, optional): 
+            id_strip (str, optional):
                 Characters to strip from img_id. Defaults to None.
             extension (str, optional):
                 Image extension to search for. Defaults to "JPG"
@@ -196,7 +196,7 @@ class RTDETRApacheBase(BaseDetector):
             data_path,
             transform=self.transform,
         )
-        
+
         results = []
         for i in range(len(dataset)):
             im_pil = Image.open(dataset.images[i]).convert('RGB')
@@ -210,7 +210,7 @@ class RTDETRApacheBase(BaseDetector):
             lab = labels[0][scr > det_conf_thres]
             box = boxes[0][scr > det_conf_thres]
             scrs = scores[0][scr > det_conf_thres]
-            
+
             res = self.results_generation([lab, box, scrs], dataset.images[i], id_strip)
 
             # Normalize the coordinates for timelapse compatibility
@@ -220,6 +220,3 @@ class RTDETRApacheBase(BaseDetector):
             results.append(res)
 
         return results
-
-
-
