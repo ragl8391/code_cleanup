@@ -31,6 +31,7 @@ import numpy as np
 
 BatchNorm = nn.BatchNorm2d
 
+
 def get_model_url(data='imagenet', name='dla34', hash='ba72cf86'):
     return join('http://dl.yf.io/dla/models', data, '{}-{}.pth'.format(name, hash))
 
@@ -315,7 +316,7 @@ class DLA(nn.Module):
 
             return x
 
-    def load_pretrained_model(self,  data='imagenet', name='dla34', hash='ba72cf86'):
+    def load_pretrained_model(self, data='imagenet', name='dla34', hash='ba72cf86'):
         fc = self.fc
         if name.endswith('.pth'):
             model_weights = torch.load(data + name)
@@ -529,12 +530,14 @@ class DLAUp(nn.Module):
             layers[-i - 1:] = y
         return x
 
+
 def fill_fc_weights(layers):
     for m in layers.modules():
         if isinstance(m, nn.Conv2d):
             nn.init.normal_(m.weight, std=0.001)
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0)
+
 
 class DLASeg(nn.Module):
     def __init__(self, base_name, heads,
@@ -543,7 +546,7 @@ class DLASeg(nn.Module):
         self.heads = heads
         self.first_level = int(np.log2(down_ratio))
         self.base = globals()[base_name](
-          pretrained=pretrained, return_levels=True)
+            pretrained=pretrained, return_levels=True)
         channels = self.base.channels
         scales = [2 ** i for i in range(len(channels[self.first_level:]))]
         self.dla_up = DLAUp(channels[self.first_level:], scales=scales)
@@ -552,19 +555,19 @@ class DLASeg(nn.Module):
             classes = self.heads[head]
             if head_conv > 0:
                 fc = nn.Sequential(
-                  nn.Conv2d(channels[self.first_level], head_conv,
-                    kernel_size=3, padding=1, bias=True),
-                  nn.ReLU(inplace=True),
-                  nn.Conv2d(head_conv, classes, 
-                    kernel_size=1, stride=1, 
-                    padding=0, bias=True))
+                    nn.Conv2d(channels[self.first_level], head_conv,
+                        kernel_size=3, padding=1, bias=True),
+                    nn.ReLU(inplace=True),
+                    nn.Conv2d(head_conv, classes,
+                        kernel_size=1, stride=1,
+                        padding=0, bias=True))
                 if 'hm' in head:
                     fc[-1].bias.data.fill_(-2.19)
                 else:
                     fill_fc_weights(fc)
             else:
-                fc = nn.Conv2d(channels[self.first_level], classes, 
-                  kernel_size=1, stride=1, 
+                fc = nn.Conv2d(channels[self.first_level], classes,
+                  kernel_size=1, stride=1,
                   padding=0, bias=True)
                 if 'hm' in head:
                     fc.bias.data.fill_(-2.19)
@@ -582,9 +585,10 @@ class DLASeg(nn.Module):
             ret[head] = self.__getattr__(head)(x)
         return [ret]
 
+
 def get_pose_net(num_layers, heads, head_conv=256, down_ratio=4):
-  model = DLASeg('dla{}'.format(num_layers), heads,
+    model = DLASeg('dla{}'.format(num_layers), heads,
                  pretrained=True,
                  down_ratio=down_ratio,
                  head_conv=head_conv)
-  return model
+    return model
