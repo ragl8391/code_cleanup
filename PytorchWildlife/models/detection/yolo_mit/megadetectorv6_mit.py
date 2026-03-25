@@ -5,15 +5,16 @@ __all__ = [
     'MegaDetectorV6MIT'
 ]
 
+
 class MegaDetectorV6MIT(YOLOMITBase):
     """
-    MegaDetectorV6 is a specialized class derived from the YOLOMITBase class 
+    MegaDetectorV6 is a specialized class derived from the YOLOMITBase class
     that is specifically designed for detecting animals, persons, and vehicles.
-    
+
     Attributes:
         CLASS_NAMES (dict): Mapping of class IDs to their respective names.
     """
-    
+
     CLASS_NAMES = {
         0: "animal",
         1: "person",
@@ -23,7 +24,7 @@ class MegaDetectorV6MIT(YOLOMITBase):
     def __init__(self, weights=None, device="cpu", pretrained=True, version='MDV6-yolov9-c-mit'):
         """
         Initializes the MegaDetectorV6 model with the option to load pretrained weights.
-        
+
         Args:
             weights (str, optional): Path to the weights file.
             device (str, optional): Device to load the model on (e.g., "cpu" or "cuda"). Default is "cpu".

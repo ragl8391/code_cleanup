@@ -21,6 +21,7 @@ model_urls = {
     'resnet50': 'https://download.pytorch.org/models/resnet50-0676ba61.pth'
 }
 
+
 class ResNetBackbone(ResNet):
     """
     Custom ResNet backbone class for feature extraction.
@@ -123,13 +124,13 @@ class PlainResNetClassifier(nn.Module):
         if self.num_layers == 18:
             block = BasicBlock
             layers = [2, 2, 2, 2]
-            #self.pretrained_weights = ResNet18_Weights.IMAGENET1K_V1
+            # self.pretrained_weights = ResNet18_Weights.IMAGENET1K_V1
             self.pretrained_weights = state_dict = load_state_dict_from_url(model_urls['resnet18'],
                                               progress=True)
         elif self.num_layers == 50:
             block = Bottleneck
             layers = [3, 4, 6, 3]
-            #self.pretrained_weights = ResNet50_Weights.IMAGENET1K_V1
+            # elf.pretrained_weights = ResNet50_Weights.IMAGENET1K_V1
             self.pretrained_weights = state_dict = load_state_dict_from_url(model_urls['resnet50'],
                                               progress=True)
         else:
@@ -151,7 +152,7 @@ class PlainResNetClassifier(nn.Module):
         Initialize the feature extractor with pre-trained weights.
         """
         # Load pre-trained weights and adjust for the current model
-        #init_weights = self.pretrained_weights.get_state_dict(progress=True)
+        # init_weights = self.pretrained_weights.get_state_dict(progress=True)
         init_weights = self.pretrained_weights
         init_weights = OrderedDict({k.replace('module.', '').replace('feature.', ''): init_weights[k]
                                     for k in init_weights})

@@ -27,6 +27,7 @@ sys.path.append(str(project_root))
 
 from yolo import create_model, create_converter, PostProcess, AugmentationComposer
 
+
 class YOLOMITBase(BaseDetector):
     """
     Base detector class for YOLO MIT framework. This class provides utility methods for
@@ -35,16 +36,16 @@ class YOLOMITBase(BaseDetector):
     def __init__(self, weights=None, device="cpu", url=None):
         """
         Initialize the YOLO MIT detector.
-        
+
         Args:
-            weights (str, optional): 
+            weights (str, optional):
                 Path to the model weights. Defaults to None.
-            device (str, optional): 
+            device (str, optional):
                 Device for model inference. Defaults to "cpu".
-            url (str, optional): 
+            url (str, optional):
                 URL to fetch the model weights. Defaults to None.
         """
-        
+
         self.cfg = self._load_cfg()
         self.transform = AugmentationComposer([], self.cfg.image_size, self.cfg.image_size[0])
         self.weights = weights
@@ -76,13 +77,13 @@ class YOLOMITBase(BaseDetector):
     def _load_model(self, weights=None, device="cpu", url=None):
         """
         Load the YOLO MIT model weights.
-        
+
         Args:
-            weights (str, optional): 
+            weights (str, optional):
                 Path to the model weights. Defaults to None.
-            device (str, optional): 
+            device (str, optional):
                 Device for model inference. Defaults to "cpu".
-            url (str, optional): 
+            url (str, optional):
                 URL to fetch the model weights. Defaults to None.
         Raises:
             Exception: If weights are not provided.
@@ -95,7 +96,7 @@ class YOLOMITBase(BaseDetector):
                 weights = os.path.join(torch.hub.get_dir(), "checkpoints", self.MODEL_NAME)
         else:
             raise Exception("Need weights for inference.")
-        
+
         self.cfg.image_size = [self.IMAGE_SIZE, self.IMAGE_SIZE]
         self.model = create_model(self.cfg.model, weight_path=weights, class_num=3).to(self.device)
         self.converter = create_converter(self.cfg.model.name, self.model, self.cfg.model.anchor, self.cfg.image_size, self.device)
@@ -104,19 +105,19 @@ class YOLOMITBase(BaseDetector):
     def results_generation(self, preds, img_id, id_strip=None):
         """
         Generate results for detection based on model predictions.
-        
+
         Args:
-            preds (List[torch.Tensor]): 
+            preds (List[torch.Tensor]):
                 Model predictions.
-            img_id (str): 
+            img_id (str):
                 Image identifier.
-            id_strip (str, optional): 
+            id_strip (str, optional):
                 Strip specific characters from img_id. Defaults to None.
 
         Returns:
             dict: Dictionary containing image ID, detections, and labels.
         """
-        #preds: [cls, x1, y1, x2, y2, conf]
+        # preds: [cls, x1, y1, x2, y2, conf]
         class_id = preds[0][:,0].cpu().numpy().astype(int)
         xyxy = preds[0][:,1:5].cpu().numpy()
         confidence = preds[0][:,5].cpu().numpy()
@@ -129,25 +130,25 @@ class YOLOMITBase(BaseDetector):
         )
 
         results["labels"] = [
-            f"{self.CLASS_NAMES[class_id]} {confidence:0.2f}"  
-            for _, _, confidence, class_id, _, _ in results["detections"] 
+            f"{self.CLASS_NAMES[class_id]} {confidence:0.2f}"
+            for _, _, confidence, class_id, _, _ in results["detections"]
         ]
         results
         return results
-        
+
 
     def single_image_detection(self, img, img_path=None, det_conf_thres=0.2, id_strip=None):
         """
         Perform detection on a single image.
-        
+
         Args:
-            img (str or ndarray): 
+            img (str or ndarray):
                 Image path or ndarray of images.
-            img_path (str, optional): 
+            img_path (str, optional):
                 Image path or identifier.
-            det_conf_thres (float, optional): 
+            det_conf_thres (float, optional):
                 Confidence threshold for predictions. Defaults to 0.2.
-            id_strip (str, optional): 
+            id_strip (str, optional):
                 Characters to strip from img_id. Defaults to None.
 
         Returns:
@@ -167,25 +168,25 @@ class YOLOMITBase(BaseDetector):
         image, bbox, rev_tensor = self.transform(im_pil)
         image = image.to(self.device)[None]
         rev_tensor = rev_tensor.to(self.device)[None]
-        
+
         with torch.no_grad():
             predict = self.model(image)
             det_results = self.post_proccess(predict, rev_tensor) #pred_box: [cls, x1, y1, x2, y2, conf]
-        
+
         return self.results_generation(det_results, img_path, id_strip)
 
     def batch_image_detection(self, data_path, batch_size=16, det_conf_thres=0.2, id_strip=None):
         """
         Perform detection on a batch of images.
-        
+
         Args:
-            data_path (str): 
+            data_path (str):
                 Path containing all images for inference.
             batch_size (int, optional):
                 Batch size for inference. Defaults to 16.
-            det_conf_thres (float, optional): 
+            det_conf_thres (float, optional):
                 Confidence threshold for predictions. Defaults to 0.2.
-            id_strip (str, optional): 
+            id_strip (str, optional):
                 Characters to strip from img_id. Defaults to None.
             extension (str, optional):
                 Image extension to search for. Defaults to "JPG"
@@ -196,12 +197,12 @@ class YOLOMITBase(BaseDetector):
         self.cfg.task.data.source = data_path
         self.cfg.task.nms.min_confidence = det_conf_thres
         self._load_model(weights=self.weights, device=self.device, url=self.url)
-        
+
         dataset = pw_data.DetectionImageFolder(
             data_path,
             transform=self.transform,
         )
-        
+
         results = []
         for i in range(len(dataset.images)):
             res = self.single_image_detection(dataset.images[i], img_path=dataset.images[i], det_conf_thres=det_conf_thres, id_strip=id_strip)

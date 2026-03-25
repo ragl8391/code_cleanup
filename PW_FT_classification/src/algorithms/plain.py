@@ -17,6 +17,7 @@ __all__ = [
     'Plain'
 ]
 
+
 class Plain(pl.LightningModule):
     """
     Defines the architecture for training a model using PyTorch Lightning.
@@ -42,7 +43,7 @@ class Plain(pl.LightningModule):
         self.save_hyperparameters(ignore=['conf', 'train_class_counts'])
         self.train_class_counts = train_class_counts
         self.id_to_labels = id_to_labels
-        self.net = models.__dict__[self.hparams.model_name](num_cls=self.hparams.num_classes, 
+        self.net = models.__dict__[self.hparams.model_name](num_cls=self.hparams.num_classes,
                                                             num_layers=self.hparams.num_layers)
 
     def configure_optimizers(self):
@@ -67,7 +68,7 @@ class Plain(pl.LightningModule):
         ]
         # Setup optimizer and optimizer scheduler
         optimizer = torch.optim.SGD(net_optim_params_list)
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=self.hparams.step_size, gamma=self.hparams.gamma)   
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=self.hparams.step_size, gamma=self.hparams.gamma)
         return [optimizer], [scheduler]
 
     def on_train_start(self):
@@ -90,14 +91,14 @@ class Plain(pl.LightningModule):
             Tensor: The loss for the current training step.
         """
         data, label_ids = batch[0], batch[1]
-        
+
         # Forward pass
         feats = self.net.feature(data)
         logits = self.net.classifier(feats)
         # Calculate loss
         loss = self.net.criterion_cls(logits, label_ids)
         self.log("train_loss", loss)
-        
+
         return loss
 
     def on_validation_start(self):
@@ -119,7 +120,7 @@ class Plain(pl.LightningModule):
         feats = self.net.feature(data)
         logits = self.net.classifier(feats)
         preds = logits.argmax(dim=1)
-        
+
         self.val_st_outs.append((preds.detach().cpu().numpy(),
                                  label_ids.detach().cpu().numpy()))
 
@@ -150,14 +151,13 @@ class Plain(pl.LightningModule):
         feats = self.net.feature(data)
         logits = self.net.classifier(feats)
         preds = logits.argmax(dim=1)
-        
+
         self.te_st_outs.append((preds.detach().cpu().numpy(),
                                label_ids.detach().cpu().numpy(),
                                feats.detach().cpu().numpy(),
-                               logits.detach().cpu().numpy(), 
-                               labels, file_ids 
-                               ))
-    
+                               logits.detach().cpu().numpy(),
+                               labels, file_ids
+                                ))
 
     def on_test_epoch_end(self):
         """
@@ -176,9 +176,9 @@ class Plain(pl.LightningModule):
                           total_label_ids[total_label_ids != -1],
                           print_class_acc=False)
 
-        output_path = self.hparams.evaluate.replace('.ckpt', 'eval.npz') 
+        output_path = self.hparams.evaluate.replace('.ckpt', 'eval.npz')
         np.savez(output_path, preds=total_preds, label_ids=total_label_ids, feats=total_feats,
-                 logits=total_logits, labels=total_labels, file_ids=total_file_ids)  
+                 logits=total_logits, labels=total_labels, file_ids=total_file_ids)
         print('Test output saved to {}.'.format(output_path))
 
     def on_predict_start(self):
@@ -201,14 +201,13 @@ class Plain(pl.LightningModule):
         logits = self.net.classifier(feats)
         preds = logits.argmax(dim=1)
         probs = torch.softmax(logits, dim=1).max(dim=1)[0]
-        
+
         self.pr_st_outs.append((preds.detach().cpu().numpy(),
                                 feats.detach().cpu().numpy(),
-                                logits.detach().cpu().numpy(), 
+                                logits.detach().cpu().numpy(),
                                 probs.detach().cpu().numpy(),
-                                file_ids 
+                                file_ids
                                 ))
-    
 
     def on_predict_epoch_end(self):
         """
@@ -233,15 +232,14 @@ class Plain(pl.LightningModule):
                 "marker_ai_model": ""
             })
 
-        output_path_full = self.hparams.evaluate.replace('.ckpt', '_predict.npz') 
+        output_path_full = self.hparams.evaluate.replace('.ckpt', '_predict.npz')
         np.savez(output_path_full, preds=total_preds, feats=total_feats,
-                 logits=total_logits, file_ids=total_file_ids)  
+                 logits=total_logits, file_ids=total_file_ids)
         print('Predict output saved to {}.'.format(output_path_full))
 
-        output_path_json = self.hparams.evaluate.replace('.ckpt', '_predict.json') 
+        output_path_json = self.hparams.evaluate.replace('.ckpt', '_predict.json')
         json.dump(json_output, open(output_path_json, 'w'))
         print('Predict output json saved to {}.'.format(output_path_json))
-
 
     def eval_logging(self, preds, labels, print_class_acc=False):
         """
@@ -264,7 +262,7 @@ class Plain(pl.LightningModule):
                 acc_list = [(class_acc[i], unique_eval_labels[i],
                              self.id_to_labels[unique_eval_labels[i]],
                              self.train_class_counts[unique_eval_labels[i]])
-                             for i in range(len(class_acc))]
+                for i in range(len(class_acc))]
 
                 print('\n')
                 for i in range(len(class_acc)):
@@ -276,7 +274,7 @@ class Plain(pl.LightningModule):
             else:
                 acc_list = [(class_acc[i], unique_eval_labels[i],
                              self.id_to_labels[unique_eval_labels[i]])
-                             for i in range(len(class_acc))]
+                for i in range(len(class_acc))]
 
                 print('\n')
                 for i in range(len(class_acc)):

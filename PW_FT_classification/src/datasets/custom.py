@@ -14,16 +14,19 @@ __all__ = [
     'Custom_Crop'
 ]
 
-# Define the allowed image extensions  
-IMG_EXTENSIONS = (".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm", ".tif", ".tiff", ".webp")  
-  
-def has_file_allowed_extension(filename: str, extensions: tuple) -> bool:  
-    """Checks if a file is an allowed extension."""  
+# Define the allowed image extensions
+IMG_EXTENSIONS = (".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm", ".tif", ".tiff", ".webp")
+
+
+def has_file_allowed_extension(filename: str, extensions: tuple) -> bool:
+    """Checks if a file is an allowed extension."""
     return filename.lower().endswith(extensions if isinstance(extensions, str) else tuple(extensions))
-  
-def is_image_file(filename: str) -> bool:  
-    """Checks if a file is an allowed image extension."""  
-    return has_file_allowed_extension(filename, IMG_EXTENSIONS) 
+
+
+def is_image_file(filename: str) -> bool:
+    """Checks if a file is an allowed image extension."""
+    return has_file_allowed_extension(filename, IMG_EXTENSIONS)
+
 
 # Define normalization mean and standard deviation for image preprocessing
 mean = [0.485, 0.456, 0.406]
@@ -45,6 +48,7 @@ data_transforms = {
         transforms.Normalize(mean, std)
     ]),
 }
+
 
 class Custom_Base_DS(Dataset):
     """
@@ -80,7 +84,7 @@ class Custom_Base_DS(Dataset):
         if self.predict:
             # Load data for prediction
             # self.data = glob(os.path.join(self.img_root,"*.{}".format(self.extension)))
-            self.data = [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.img_root) for f in filenames if is_image_file(f)] # dp: directory path, dn: directory name, f: filename
+            self.data = [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.img_root) for f in filenames if is_image_file(f)]  # dp: directory path, dn: directory name, f: filename
         else:
             # Load data for training/validation
             self.data = list(self.ann['path'])
@@ -178,7 +182,7 @@ class Custom_Base(pl.LightningDataModule):
         """
         super().__init__()
         self._log_hyperparams = True
-        self.id_to_labels = None # We don't need this for evaluations. We should save this in model weights in the future
+        self.id_to_labels = None  # We don't need this for evaluations. We should save this in model weights in the future
         self.train_class_counts = None
 
         self.conf = conf
