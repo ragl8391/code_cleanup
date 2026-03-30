@@ -4,7 +4,7 @@
 """ Yolo mit base detector class. """
 
 # Importing basic libraries
-
+from yolo import create_model, create_converter, PostProcess, AugmentationComposer
 import os
 import supervision as sv
 import numpy as np
@@ -24,8 +24,6 @@ from omegaconf import OmegaConf
 
 project_root = Path(__file__).resolve().parent
 sys.path.append(str(project_root))
-
-from yolo import create_model, create_converter, PostProcess, AugmentationComposer
 
 
 class YOLOMITBase(BaseDetector):
@@ -118,9 +116,9 @@ class YOLOMITBase(BaseDetector):
             dict: Dictionary containing image ID, detections, and labels.
         """
         # preds: [cls, x1, y1, x2, y2, conf]
-        class_id = preds[0][:,0].cpu().numpy().astype(int)
-        xyxy = preds[0][:,1:5].cpu().numpy()
-        confidence = preds[0][:,5].cpu().numpy()
+        class_id = preds[0][:, 0].cpu().numpy().astype(int)
+        xyxy = preds[0][:, 1:5].cpu().numpy()
+        confidence = preds[0][:, 5].cpu().numpy()
 
         results = {"img_id": str(img_id).strip(id_strip)}
         results["detections"] = sv.Detections(
@@ -136,11 +134,9 @@ class YOLOMITBase(BaseDetector):
         results
         return results
 
-
     def single_image_detection(self, img, img_path=None, det_conf_thres=0.2, id_strip=None):
         """
         Perform detection on a single image.
-
         Args:
             img (str or ndarray):
                 Image path or ndarray of images.
@@ -158,7 +154,7 @@ class YOLOMITBase(BaseDetector):
         self.cfg.task.nms.min_confidence = det_conf_thres
         self._load_model(weights=self.weights, device=self.device, url=self.url)
 
-        if type(img) == str:
+        if img == isinstance(str):
             if img_path is None:
                 img_path = img
             im_pil = Image.open(img_path).convert('RGB')
@@ -171,7 +167,7 @@ class YOLOMITBase(BaseDetector):
 
         with torch.no_grad():
             predict = self.model(image)
-            det_results = self.post_proccess(predict, rev_tensor) #pred_box: [cls, x1, y1, x2, y2, conf]
+            det_results = self.post_proccess(predict, rev_tensor)  # pred_box: [cls, x1, y1, x2, y2, conf]
 
         return self.results_generation(det_results, img_path, id_strip)
 
@@ -216,6 +212,3 @@ class YOLOMITBase(BaseDetector):
             results.append(res)
 
         return results
-
-
-

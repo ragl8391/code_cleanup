@@ -6,12 +6,12 @@
 # Importing basic libraries
 from torch import nn
 
+
 class BaseDetector(nn.Module):
     """
     Base detector class. This class provides utility methods for
     loading the model, generating results, and performing single and batch image detections.
     """
-    
     # Placeholder class-level attributes to be defined in derived classes
     IMAGE_SIZE = None
     STRIDE = None
@@ -21,29 +21,28 @@ class BaseDetector(nn.Module):
     def __init__(self, weights=None, device="cpu", url=None):
         """
         Initialize the base detector.
-        
+
         Args:
-            weights (str, optional): 
+            weights (str, optional):
                 Path to the model weights. Defaults to None.
-            device (str, optional): 
+            device (str, optional):
                 Device for model inference. Defaults to "cpu".
-            url (str, optional): 
+            url (str, optional):
                 URL to fetch the model weights. Defaults to None.
         """
         super(BaseDetector, self).__init__()
         self.device = device
 
-
     def _load_model(self, weights=None, device="cpu", url=None):
         """
         Load model weights.
-        
+
         Args:
-            weights (str, optional): 
+            weights (str, optional):
                 Path to the model weights. Defaults to None.
-            device (str, optional): 
+            device (str, optional):
                 Device for model inference. Defaults to "cpu".
-            url (str, optional): 
+            url (str, optional):
                 URL to fetch the model weights. Defaults to None.
         Raises:
             Exception: If weights are not provided.
@@ -67,17 +66,17 @@ class BaseDetector(nn.Module):
     def single_image_detection(self, img, img_size=None, img_path=None, conf_thres=0.2, id_strip=None) -> dict:
         """
         Perform detection on a single image.
-        
+
         Args:
-            img (str or ndarray): 
+            img (str or ndarray):
                 Image path or ndarray of images.
-            img_size (tuple): 
+            img_size (tuple):
                 Original image size.
-            img_path (str): 
+            img_path (str):
                 Image path or identifier.
-            conf_thres (float, optional): 
+            conf_thres (float, optional):
                 Confidence threshold for predictions. Defaults to 0.2.
-            id_strip (str, optional): 
+            id_strip (str, optional):
                 Characters to strip from img_id. Defaults to None.
 
         Returns:

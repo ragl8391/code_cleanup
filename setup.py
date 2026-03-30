@@ -1,17 +1,17 @@
 from setuptools import setup, find_packages
 
 with open('README.md', encoding="utf8") as file:
-        long_description = file.read()
+    long_description = file.read()
 setup(
     name='PytorchWildlife',
-    version='1.2.4.2', 
+    version='1.2.4.2',
     packages=find_packages(),
     include_package_data=True,
     package_data={"": ["*.yml"]},
-    url='https://github.com/microsoft/CameraTraps/',  
+    url='https://github.com/microsoft/CameraTraps/',
     license='MIT',
     author='Andres Hernandez, Zhongqi Miao, Daniela Ruiz Lopez, Isai Daniel Chacon Silva',
-    author_email='v-hernandres@microsoft.com, zhongqimiao@microsoft.com, v-druizlopez@microsoft.com, v-ichaconsil@microsoft.com',  
+    author_email='v-hernandres@microsoft.com, zhongqimiao@microsoft.com, v-druizlopez@microsoft.com, v-ichaconsil@microsoft.com',
     description='a PyTorch Collaborative Deep Learning Framework for Conservation.',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -20,7 +20,7 @@ setup(
         'torchvision',
         'torchaudio',
         'tqdm',
-        'Pillow', 
+        'Pillow',
         'supervision==0.23.0',
         'gradio',
         'ultralytics',
@@ -32,8 +32,8 @@ setup(
         'timm',
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',  
-        'Intended Audience :: Developers', 
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
     ],

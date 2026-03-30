@@ -43,7 +43,7 @@ def save_detection_images(results, output_dir, input_dir=None, overwrite=False):
     lab_annotator = sv.LabelAnnotator(text_color=sv.Color.BLACK, text_thickness=4, text_scale=2)
     os.makedirs(output_dir, exist_ok=True)
 
-    with sv.ImageSink(target_dir_path=output_dir, overwrite=overwrite) as sink: 
+    with sv.ImageSink(target_dir_path=output_dir, overwrite=overwrite) as sink:
         if isinstance(results, list):
             for entry in results:
                 annotated_img = lab_annotator.annotate(
@@ -57,8 +57,8 @@ def save_detection_images(results, output_dir, input_dir=None, overwrite=False):
                 if input_dir:
                     relative_path = os.path.relpath(entry["img_id"], input_dir)
                     save_path = os.path.join(output_dir, relative_path)
-                    os.makedirs(os.path.dirname(save_path), exist_ok=True) 
-                    image_name = relative_path 
+                    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                    image_name = relative_path
                 else:
                     image_name = os.path.basename(entry["img_id"])
                 sink.save_image(
@@ -78,6 +78,7 @@ def save_detection_images(results, output_dir, input_dir=None, overwrite=False):
                 image=cv2.cvtColor(annotated_img, cv2.COLOR_RGB2BGR), image_name=os.path.basename(results["img_id"])
             )
 
+
 def save_detection_images_dots(results, output_dir, input_dir=None, overwrite=False):
     """
     Save detected images with bounding boxes and labels annotated.
@@ -92,10 +93,10 @@ def save_detection_images_dots(results, output_dir, input_dir=None, overwrite=Fa
         overwrite (bool):
             Whether overwriting existing image folders. Default to False.
     """
-    dot_annotator = sv.DotAnnotator(radius=6)  
-    lab_annotator = sv.LabelAnnotator(text_position=sv.Position.BOTTOM_RIGHT)   
+    dot_annotator = sv.DotAnnotator(radius=6)
+    lab_annotator = sv.LabelAnnotator(text_position=sv.Position.BOTTOM_RIGHT)
     os.makedirs(output_dir, exist_ok=True)
-    
+
     with sv.ImageSink(target_dir_path=output_dir, overwrite=overwrite) as sink:
         if isinstance(results, list):
             for i, entry in enumerate(results):
@@ -104,7 +105,7 @@ def save_detection_images_dots(results, output_dir, input_dir=None, overwrite=Fa
                     image_name = os.path.basename(entry["img_id"])
                 else:
                     scene = entry["img"]
-                    image_name = f"output_image_{i}.jpg" # default name if no image id is provided
+                    image_name = f"output_image_{i}.jpg"  # default name if no image id is provided
 
                 annotated_img = lab_annotator.annotate(
                     scene=dot_annotator.annotate(
@@ -117,7 +118,7 @@ def save_detection_images_dots(results, output_dir, input_dir=None, overwrite=Fa
                 if input_dir:
                     relative_path = os.path.relpath(entry["img_id"], input_dir)
                     save_path = os.path.join(output_dir, relative_path)
-                    os.makedirs(os.path.dirname(save_path), exist_ok=True) 
+                    os.makedirs(os.path.dirname(save_path), exist_ok=True)
                     image_name = relative_path
                 sink.save_image(
                     image=cv2.cvtColor(annotated_img, cv2.COLOR_RGB2BGR), image_name=image_name
@@ -128,8 +129,8 @@ def save_detection_images_dots(results, output_dir, input_dir=None, overwrite=Fa
                 image_name = os.path.basename(results["img_id"])
             else:
                 scene = results["img"]
-                image_name = "output_image.jpg" # default name if no image id is provided
-            
+                image_name = "output_image.jpg"  # default name if no image id is provided
+
             annotated_img = lab_annotator.annotate(
                 scene=dot_annotator.annotate(
                     scene=scene,
@@ -137,7 +138,7 @@ def save_detection_images_dots(results, output_dir, input_dir=None, overwrite=Fa
                 ),
                 detections=results["detections"],
                 labels=results["labels"],
-            )   
+            )
             sink.save_image(
                 image=cv2.cvtColor(annotated_img, cv2.COLOR_RGB2BGR), image_name=image_name
             )
@@ -171,7 +172,7 @@ def save_crop_images(results, output_dir, input_dir=None, overwrite=False):
                     if input_dir:
                         relative_path = os.path.relpath(entry["img_id"], input_dir)
                         save_path = os.path.join(output_dir, relative_path)
-                        os.makedirs(os.path.dirname(save_path), exist_ok=True) 
+                        os.makedirs(os.path.dirname(save_path), exist_ok=True)
                         image_name = os.path.join(os.path.dirname(relative_path), "{}_{}_{}".format(int(cat), i, os.path.basename(entry["img_id"])))
                     else:
                         image_name = "{}_{}_{}".format(int(cat), i, os.path.basename(entry["img_id"]))
@@ -184,10 +185,10 @@ def save_crop_images(results, output_dir, input_dir=None, overwrite=False):
                 cropped_img = sv.crop_image(
                     image=np.array(Image.open(results["img_id"]).convert("RGB")), xyxy=xyxy
                 )
-                sink.save_image(
-                    image=cv2.cvtColor(cropped_img, cv2.COLOR_RGB2BGR),
-                    image_name="{}_{}_{}".format(int(cat), i, os.path.basename(results["img_id"]),
-                ))
+                sink.save_image(image=cv2.cvtColor(cropped_img, cv2.COLOR_RGB2BGR),
+                                image_name="{}_{}_{}".format(int(cat), i,
+                                os.path.basename(results["img_id"]),))
+
 
 def save_detection_json(det_results, output_dir, categories=None, exclude_category_ids=[], exclude_file_path=None):
     """
@@ -214,7 +215,7 @@ def save_detection_json(det_results, output_dir, categories=None, exclude_catego
         category = det_r["detections"].class_id
 
         bbox = det_r["detections"].xyxy.astype(int)[~np.isin(category, exclude_category_ids)]
-        confidence =  det_r["detections"].confidence[~np.isin(category, exclude_category_ids)]
+        confidence = det_r["detections"].confidence[~np.isin(category, exclude_category_ids)]
         category = category[~np.isin(category, exclude_category_ids)]
 
         # if not all([x in exclude_category_ids for x in category]):
@@ -229,6 +230,7 @@ def save_detection_json(det_results, output_dir, categories=None, exclude_catego
 
     with open(output_dir, "w") as f:
         json.dump(json_results, f, indent=4)
+
 
 def save_detection_json_as_dots(det_results, output_dir, categories=None, exclude_category_ids=[], exclude_file_path=None):
     """
@@ -256,7 +258,7 @@ def save_detection_json_as_dots(det_results, output_dir, categories=None, exclud
 
         bbox = det_r["detections"].xyxy.astype(int)[~np.isin(category, exclude_category_ids)]
         dot = np.array([[np.mean(row[::2]), np.mean(row[1::2])] for row in bbox])
-        confidence =  det_r["detections"].confidence[~np.isin(category, exclude_category_ids)]
+        confidence = det_r["detections"].confidence[~np.isin(category, exclude_category_ids)]
         category = category[~np.isin(category, exclude_category_ids)]
 
         # if not all([x in exclude_category_ids for x in category]):
@@ -275,8 +277,9 @@ def save_detection_json_as_dots(det_results, output_dir, categories=None, exclud
 
 def save_detection_timelapse_json(
     det_results, output_dir, categories=None,
-    exclude_category_ids=[], exclude_file_path=None, info={"detector": "megadetector_v5"}
-    ):
+    exclude_category_ids=[], exclude_file_path=None,
+    info={
+        "detector": "megadetector_v5"}):
     """
     Save detection results to a JSON file.
 
@@ -307,7 +310,7 @@ def save_detection_timelapse_json(
         category_id_list = det_r["detections"].class_id
 
         bbox_list = det_r["detections"].xyxy.astype(int)[~np.isin(category_id_list, exclude_category_ids)]
-        confidence_list =  det_r["detections"].confidence[~np.isin(category_id_list, exclude_category_ids)]
+        confidence_list = det_r["detections"].confidence[~np.isin(category_id_list, exclude_category_ids)]
         normalized_bbox_list = np.array(det_r["normalized_coords"])[~np.isin(category_id_list, exclude_category_ids)]
         category_id_list = category_id_list[~np.isin(category_id_list, exclude_category_ids)]
 
@@ -322,7 +325,7 @@ def save_detection_timelapse_json(
             detection = {
                 "category": str(category_id_list[i]),
                 "conf": float(confidence_list[i]),
-                "bbox": [normalized_bbox[0], normalized_bbox[1], normalized_bbox[2]-normalized_bbox[0], normalized_bbox[3]-normalized_bbox[1]],
+                "bbox": [normalized_bbox[0], normalized_bbox[1], normalized_bbox[2] - normalized_bbox[0], normalized_bbox[3] - normalized_bbox[1]],
                 "classifications": []
             }
 
@@ -436,7 +439,7 @@ def save_detection_classification_timelapse_json(
             detection = {
                 "category": str(det.class_id[0]),
                 "conf": float(det.confidence[0]),
-                "bbox": [normalized_bbox[0], normalized_bbox[1], normalized_bbox[2]-normalized_bbox[0], normalized_bbox[3]-normalized_bbox[1]],
+                "bbox": [normalized_bbox[0], normalized_bbox[1], normalized_bbox[2] - normalized_bbox[0], normalized_bbox[3] - normalized_bbox[1]],
                 "classifications": []
             }
 
@@ -461,7 +464,7 @@ def detection_folder_separation(json_file, img_path, destination_path, confidenc
     This function reads a JSON formatted file containing annotations of image detections.
     Each image is checked for detections with category '0' and a confidence level above the specified
     threshold. If such detections are found, the image is categorized under 'Animal'. Images without
-    any category '0' detections above the threshold, including those with no detections at all, are 
+    any category '0' detections above the threshold, including those with no detections at all, are
     categorized under 'No_animal'.
 
     Parameters:
@@ -487,39 +490,39 @@ def detection_folder_separation(json_file, img_path, destination_path, confidenc
     # Load JSON data from the file
     with open(json_file, 'r') as file:
         data = json.load(file)
-    
+
     # Ensure the destination directories exist
     os.makedirs(destination_path, exist_ok=True)
     animal_path = os.path.join(destination_path, "Animal")
     no_animal_path = os.path.join(destination_path, "No_animal")
     os.makedirs(animal_path, exist_ok=True)
     os.makedirs(no_animal_path, exist_ok=True)
-    
+
     # Process each image detection
     i = 0
     for item in data['annotations']:
-        i+=1
+        i += 1
         img_id = item['img_id']
         categories = item['category']
         confidences = item['confidence']
-        
+
         # Check if there is any category '0' with confidence above the threshold
         file_targeted_for_animal = False
         for category, confidence in zip(categories, confidences):
             if category == 0 and confidence > confidence_threshold:
                 file_targeted_for_animal = True
                 break
-        
+
         if file_targeted_for_animal:
             target_folder = animal_path
         else:
             target_folder = no_animal_path
-        
+
         # Construct the source and destination file paths
         src_file_path = os.path.join(img_path, img_id)
         dest_file_path = os.path.join(target_folder, os.path.dirname(img_id))
         os.makedirs(dest_file_path, exist_ok=True)
-        
+
         # Copy the file to the appropriate directory
         shutil.copy(src_file_path, dest_file_path)
 
